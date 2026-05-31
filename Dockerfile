@@ -1,6 +1,7 @@
 FROM astral/uv:python3.11-bookworm-slim
 
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
@@ -19,5 +20,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-CMD ["fastapi", "run", "backend/main.py", "--host", "0.0.0.0", "--port", "8000"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["fastapi", "run", "backend/main.py", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
