@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from datetime import timedelta
+from backend.core.config import settings
 from backend.models.schema import UserCreate, UserLogin
 from backend.core.database import get_db
 from backend.models.db_models import User
 from backend.core.utils import hash_password, verify_password
-from backend.models.schema import UserResponse
+from backend.core.utils import create_access_token
 
 router = APIRouter(
     prefix="/auth",
@@ -46,7 +48,7 @@ async def register_user(
     return {"message": "User registered successfully"}
 
 
-@router.post("/login", status_code=status.HTTP_200_OK, response_model=UserResponse)
+@router.post("/login", status_code=status.HTTP_200_OK)
 async def login_user(
     payload: UserLogin,
     db: AsyncSession = Depends(get_db)
@@ -66,9 +68,12 @@ async def login_user(
             detail="Incorrect credentials."
         )
     
-    #TODO: JWT token
+    token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     
-    return user
+    return {"access_token": token, "token_type": "bearer"}
 
         
     
