@@ -3,6 +3,7 @@ from pydantic import BaseModel, EmailStr, HttpUrl, Field, field_validator
 from uuid import UUID
 from datetime import datetime
 from typing import List, Optional
+from fastapi import FastAPI, Depends, Form, UploadFile, File
 
 
 class OAuthAccountBase(BaseModel):
@@ -92,3 +93,23 @@ class UserResponse(UserBase):
         json_encoders = {
             HttpUrl: lambda v: str(v)
         }
+
+
+class DocumentCreate(BaseModel):
+    subject: str
+
+    @classmethod
+    def as_form(
+        cls,
+        subject: str = Form(...),
+    ):
+        return cls(subject=subject)
+
+
+class DocumentRead(BaseModel):
+    subject: str
+    status: str
+    summary: str
+
+    
+    

@@ -1,3 +1,4 @@
+from backend.routers import documents
 from fastapi import FastAPI, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -14,6 +15,7 @@ app.add_middleware(CORSMiddleware)
 
 # routers
 app.include_router(auth.router)
+app.include_router(documents.router)
 
 
 @app.get("/")

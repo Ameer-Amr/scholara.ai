@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from backend.core.database import Base
 from alembic import context
 from backend.core.config import settings
-from backend.models.db_models import User, OAuthAccount
+from backend.models.db_models import User, OAuthAccount, Document, DocumentChunks
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

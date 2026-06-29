@@ -1,12 +1,15 @@
 from jose import jwt, JWTError
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from datetime import timedelta, datetime
 from passlib.context import CryptContext
 from backend.core.config import settings
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Annotated
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+security = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
@@ -43,3 +46,31 @@ def get_user_from_token(token: str = Depends(oauth2_scheme)):
             detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+    # HTTPBearer automatically splits "Bearer" and returns the token string
+    token = credentials.credentials
+    
+    try:
+        # Decode and validate expiration, signature, etc.
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+            )
+        return email
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Token has expired"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid token"
+        )
+
